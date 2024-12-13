@@ -75,20 +75,4 @@ body {
   }
 
   /* src/styles/prism-snake-custom.css */
-  .token.comment {
-    color: #6a9955; /* Green */
-  }
-  .token.string {
-    color: #ce9178; /* Red */
-  }
-  .token.keyword {
-    color: #569cd6; /* Blue */
-    font-weight: bold;
-  }
-  .token.number {
-    color: #b5cea8; /* Light Green */
-  }
-  .token.operator {
-    color: #d4d4d4; /* Light Gray */
-  }
 }

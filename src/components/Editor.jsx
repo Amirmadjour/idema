@@ -3,7 +3,7 @@
 import { useEditor } from "@/components/Context/EditorContext";
 import { useEffect, useRef, useState } from "react";
 import Prism from "@/lib/prism-snake";
-import "prismjs/themes/prism.css";
+import "@/lib/prism-snake-custom.css"
 
 const Editor = () => {
   const { editor, setEditor } = useEditor();
@@ -74,6 +74,7 @@ const Editor = () => {
 
       <textarea
         ref={textAreaRef}
+        spellCheck="false"
         className="absolute inset-0 w-full h-full opacity-90 border p-2 pl-10 bg-background text-transparent caret-foreground"
         value={editor.tabs[editor.activeTab]?.tabContent}
         onChange={handleChange}

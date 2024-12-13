@@ -1,0 +1,19 @@
+.token.comment {
+  color: #197414; 
+}
+.token.string {
+  color: #ce9178; 
+}
+.token.keyword {
+  color: #097AE4; 
+  font-weight: bold;
+}
+.token.number {
+  color: #9DDA7D; 
+}
+.token.operator {
+  color: #C32A2A; 
+}
+.token.other {
+  color: #0699CE;
+}

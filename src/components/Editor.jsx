@@ -10,24 +10,18 @@ const Editor = () => {
   const textRef = useRef(null);
   const textAreaRef = useRef(null);
   const lineNumbersRef = useRef(null);
-  const [cursorPosition, setCursorPosition] = useState(0);
   const [isClient, setIsClient] = useState(false);
 
   const handleChange = (event) => {
-    const value = event.target.value;
-    setEditor((prev) => ({ ...prev, code: value }));
-    setCursorPosition(event.target.selectionStart); // Update cursor position
-  };
-
-  const handleKeyUp = (event) => {
-    setCursorPosition(event.target.selectionStart); // Update cursor position
-  };
-
-  const handleScroll = () => {
-    if (textAreaRef.current && textRef.current) {
-      textRef.current.scrollTop = textAreaRef.current.scrollTop;
-      textRef.current.scrollLeft = textAreaRef.current.scrollLeft;
-    }
+    setEditor((prev) => {
+      const index = prev.activeTab;
+      const updatedTabs = [...prev.tabs];
+      updatedTabs[index] = {
+        ...updatedTabs[index],
+        tabContent: event.target.value,
+      };
+      return { ...prev, tabs: updatedTabs };
+    });
   };
 
   useEffect(() => {
@@ -36,34 +30,40 @@ const Editor = () => {
 
   useEffect(() => {
     if (isClient && textRef.current) {
-      // Syntax-highlighted content
-      const highlightedCode = Prism.highlight(
-        editor.code,
-        Prism.languages.snake,
-        "snake"
-      );
-
-      // Insert cursor manually
-      const cursorSpan = `<span class="cursor">|</span>`;
-      const beforeCursor = highlightedCode.slice(0, cursorPosition);
-      const afterCursor = highlightedCode.slice(cursorPosition);
-      textRef.current.innerHTML = beforeCursor + cursorSpan + afterCursor;
+      const code = editor.tabs[editor.activeTab]?.tabContent;
+      if (code != undefined) {
+        textRef.current.innerHTML = Prism.highlight(
+          code,
+          Prism.languages.snake,
+          "snake"
+        );
+      }
     }
 
     if (lineNumbersRef.current) {
-      const lineCount = editor.code.split("\n").length;
-      const lines = Array.from({ length: lineCount }, (_, i) => i + 1).join(
-        "\n"
-      );
-      lineNumbersRef.current.textContent = lines;
+      const code = editor.tabs[editor.activeTab]?.tabContent;
+      if (code) {
+        const lineCount = code.split("\n").length;
+        const lines = Array.from({ length: lineCount }, (_, i) => i + 1).join(
+          "\n"
+        );
+        lineNumbersRef.current.textContent = lines;
+      }
     }
-  }, [editor.code, cursorPosition, isClient]);
+  }, [editor.tabs[editor.activeTab]?.tabContent, isClient]);
+
+  const handleScroll = () => {
+    if (textAreaRef.current && textRef.current) {
+      textRef.current.scrollTop = textAreaRef.current.scrollTop;
+      textRef.current.scrollLeft = textAreaRef.current.scrollLeft;
+    }
+  };
 
   return (
     <div className="w-full h-full flex relative">
       <div
         ref={lineNumbersRef}
-        className="absolute h-full bg-background-secondary text-right text-foreground p-2 pr-4 z-10"
+        className="asbolute h-full bg-background-secondary text-right text-foreground p-2 pr-4 z-10"
         style={{
           fontFamily: "monospace",
           whiteSpace: "pre-wrap",
@@ -74,10 +74,9 @@ const Editor = () => {
 
       <textarea
         ref={textAreaRef}
-        className="absolute inset-0 w-full h-full opacity-0 border p-2 pl-10 bg-transparent caret-transparent"
-        value={editor.code}
+        className="absolute inset-0 w-full h-full opacity-90 border p-2 pl-10 bg-background text-transparent caret-foreground"
+        value={editor.tabs[editor.activeTab]?.tabContent}
         onChange={handleChange}
-        onKeyUp={handleKeyUp}
         onScroll={handleScroll}
         placeholder="Enter your Snake code here"
         style={{
@@ -88,7 +87,7 @@ const Editor = () => {
       />
       <div
         ref={textRef}
-        className="absolute inset-0 w-full h-full p-2 pl-10 whitespace-pre-wrap overflow-auto bg-background text-left border-opacity-50 pointer-events-none"
+        className="absolute inset-0 w-full h-full p-2 pl-10 whitespace-pre-wrap overflow-auto text-left border-opacity-50 pointer-events-none"
         style={{
           fontFamily: "monospace",
         }}

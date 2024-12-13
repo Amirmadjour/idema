@@ -18,8 +18,6 @@ export default function ResizableMain() {
     { id: uuidv4(), value: "semantique", text: "Sémantique" },
   ];
 
-  console.log(editor.analysisResult);
-
   return (
     <ResizablePanelGroup
       direction="vertical"

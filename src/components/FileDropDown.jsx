@@ -39,7 +39,11 @@ export function FileDropDown() {
 
       const fileContent = await readFileContent(file);
       console.log("File Content:", fileContent);
-      setEditor((prev) => ({ ...prev, code: fileContent }));
+      setEditor((prev) => ({
+        ...prev,
+        tabs: [...prev.tabs, { tabTitle: file.name, tabContent: fileContent }],
+        activeTab: prev.tabs.length,
+      }));
 
       event.target.value = "";
     }
@@ -52,6 +56,15 @@ export function FileDropDown() {
       reader.onerror = (error) => reject(error);
       reader.readAsText(file);
     });
+  };
+
+  const newFile = () => {
+    setEditor((prev) => ({
+      ...prev,
+      tabs: [...prev.tabs, { tabTitle: "noName1.snk", tabContent: "" }],
+      activeTab: prev.tabs.length,
+    }));
+    setOpen(false);
   };
 
   return (
@@ -70,14 +83,21 @@ export function FileDropDown() {
               "data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-foreground/5"
             )}
           >
-            New File
+            Import File
             <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
             <input type="file" className="hidden" onChange={handleFileChange} />
           </label>
-          <DropdownMenuItem>
-            Import File
+          <button
+            className={clsx(
+              "w-full relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none",
+              "transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none",
+              "data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-foreground/5"
+            )}
+            onClick={newFile}
+          >
+            New File
             <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
-          </DropdownMenuItem>
+          </button>
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -6,16 +6,19 @@ const EditorContext = createContext();
 
 export const EditorProvider = ({ children }) => {
   const [editor, setEditor] = useState({
-    code: "",
+    tabs: [{ tabTitle: "snake.snk", tabContent: "If a > b :" }],
+    activeTab: 0,
+    code: "If a > b :",
     analysisResult: "",
   });
 
   const analyzeCode = async () => {
-    console.log("code: ", JSON.stringify(editor.code));
+    const code = editor.tabs[editor.activeTab].tabContent;
+    console.log("code: ", JSON.stringify(code));
     try {
       const response = await fetch("/api/analyze", {
         method: "POST",
-        body: JSON.stringify({ code: editor.code }), // Wrap code in an object for clarity
+        body: JSON.stringify({ code: code }), // Wrap code in an object for clarity
         headers: { "Content-Type": "application/json" },
       });
 
@@ -24,6 +27,7 @@ export const EditorProvider = ({ children }) => {
       }
 
       const data = await response.json();
+      console.log(data);
       setEditor((prev) => ({ ...prev, analysisResult: data }));
     } catch (error) {
       console.log("Error analyzing code:", error);

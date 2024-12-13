@@ -91,16 +91,4 @@ body {
   .token.operator {
     color: #d4d4d4; /* Light Gray */
   }
-
-  .cursor {
-    display: inline-block;
-    width: 2px;
-    height: 1em;
-    animation: blink 1s step-start infinite;
-  }
-  @keyframes blink {
-    50% {
-      opacity: 0;
-    }
-  }
 }

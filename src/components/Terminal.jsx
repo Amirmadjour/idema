@@ -34,27 +34,37 @@ const Terminal = () => {
       {editor.analysisResult && (
         <>
           <TabsContent value="lexique" className="h-full min-h-0 w-full">
-            <ScrollArea className="max-h-full max-w-full h-full w-full">
-              {Object.entries(editor.analysisResult.lexical?.tokens).map(
-                ([key, value]) => (
-                  <div key={key}>
-                    <strong>{key}:</strong> {JSON.stringify(value)}
-                  </div>
-                )
-              )}
-            </ScrollArea>
+            {editor.analysisResult.lexical?.tokens && (
+              <ScrollArea className="max-h-full max-w-full h-full w-full">
+                {Object.entries(editor.analysisResult.lexical?.tokens).map(
+                  ([key, value]) => (
+                    <div key={key}>
+                      <strong>{key}:</strong> {JSON.stringify(value)}
+                    </div>
+                  )
+                )}
+              </ScrollArea>
+            )}
           </TabsContent>
           <TabsContent value="syntax" className="h-full min-h-0 w-full">
-            <ScrollArea className="max-h-full max-w-full h-full w-full">
-              is valid :{" "}
-              {JSON.stringify(editor.analysisResult.syntax?.isValid, null, 2)}
-            </ScrollArea>
+            {editor.analysisResult.syntax && (
+              <ScrollArea className="max-h-full max-w-full h-full w-full">
+                {editor.analysisResult.syntax.map((i, index) => (
+                  <div key={index}>
+                    <strong>{i.ligne ? i.ligne : "Error"}:</strong>{" "}
+                    {i.error ? i.error : JSON.stringify(i.message)}
+                  </div>
+                ))}
+              </ScrollArea>
+            )}
           </TabsContent>
           <TabsContent value="semantique" className="h-full min-h-0 w-full">
-            <ScrollArea className="max-h-full max-w-full h-full w-full">
-              is valid :{" "}
-              {JSON.stringify(editor.analysisResult.semantic?.isValid, null, 2)}
-            </ScrollArea>
+            {editor.analysisResult.semantic && (
+              <ScrollArea className="max-h-full max-w-full h-full w-full">
+                <strong>{Object.keys(editor.analysisResult.semantic)}</strong> :{" "}
+                {Object.values(editor.analysisResult.semantic)}
+              </ScrollArea>
+            )}
           </TabsContent>
         </>
       )}

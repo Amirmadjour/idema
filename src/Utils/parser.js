@@ -1,4 +1,4 @@
-const tokenPatterns = {
+export const tokenPatterns = {
   Snk_Begin: {
     pattern: /\bSnk_Begin\b/,
     message: "mot clé pour débuter un programme",
@@ -10,6 +10,10 @@ const tokenPatterns = {
   Snk_Real: {
     pattern: /\bSnk_Real\b/,
     message: "mot clé de déclaration du type réel",
+  },
+  Snk_Strg: {
+    pattern: /\Snk_Strg\b/,
+    message: "mot clé de déclaration d'une chaine de caractère",
   },
   Set: {
     pattern: /\bSet\b/,
@@ -96,7 +100,6 @@ const tokenPatterns = {
 function tokenizeLine(line) {
   const tokens = [];
   let remainingLine = line.trim();
-  console.log("Line to tokenize: ", remainingLine);
 
   while (remainingLine.length > 0) {
     let matched = false;
@@ -114,10 +117,10 @@ function tokenizeLine(line) {
     }
 
     if (!matched) {
+      return { error: `Unexpected token: "${remainingLine}"` };
       throw new Error(`Unexpected token: "${remainingLine}"`);
     }
   }
-  console.log("tokens: ", tokens);
 
   return tokens;
 }
@@ -133,7 +136,7 @@ function tokenizeLine(line) {
 //   { type: 'finLigne', value: '#' }
 // ]
 
-function parseLine(tokens) {
+function parseLine(tokens, line) {
   if (tokens.length === 0) return;
 
   const [firstToken, ...restTokens] = tokens;
@@ -143,86 +146,134 @@ function parseLine(tokens) {
     ["Snk_Begin", "Snk_End", "Else", "Begin", "End"].includes(firstToken.type)
   ) {
     if (restTokens.length !== 0) {
+      return { error: `Unexpected tokens after ${firstToken.value}` };
       throw new Error(`Unexpected tokens after ${firstToken.value}`);
     }
-    return { type: "Standalone", keyword: firstToken.value };
+    switch (firstToken.type) {
+      case "Snk_Begin":
+        return { ligne: line, message: "Début de programme" };
+      case "Snk_End":
+        return { ligne: line, message: "Fin de programme" };
+      case "Else":
+        return { ligne: line, message: "Bloc Else" };
+      case "Begin":
+        return { ligne: line, message: "Début de bloc de code" };
+      case "End":
+        return { ligne: line, message: "Fin de bloc de code" };
+    }
   }
 
   // Rule: Declaration
-  if (firstToken.type === "Snk_Real" || firstToken.type === "Snk_Int") {
-    return parseDeclaration(tokens);
+  if (
+    firstToken.type === "Snk_Real" ||
+    firstToken.type === "Snk_Int" ||
+    firstToken.type === "Snk_Strg"
+  ) {
+    return parseDeclaration(tokens, firstToken.type, line);
   }
 
   // Rule: Printing
   if (firstToken.type === "Snk_Print") {
-    return parsePrint(tokens);
+    return parsePrint(tokens, line);
   }
 
   // Rule: Assignment
   if (firstToken.type === "Set" || firstToken.type === "Get") {
-    return parseAssignment(tokens);
+    return parseAssignment(tokens, line);
   }
 
   // Rule: Comment
   if (firstToken.type === "Commentaire") {
-    return { type: "Comment", text: tokens[0].value };
+    return { ligne: line, message: "Un commentaire" };
   }
 
   if (firstToken.type === "If") {
-    return parseIfStatement(tokens);
+    return parseIfStatement(tokens, line);
   }
 
+  return {
+    error: `Unrecognized line type: ${tokens.map((t) => t.value).join(" ")}`,
+  };
   throw new Error(
     `Unrecognized line type: ${tokens.map((t) => t.value).join(" ")}`
   );
 }
 
 // Declaration: Snk_Real ident, ident #
-function parseDeclaration(tokens) {
+function parseDeclaration(tokens, firstToken, line) {
   const [keyword, ...rest] = tokens;
   if (rest[rest.length - 1]?.type !== "finLigne") {
+    return { error: "Declaration must end with #" };
     throw new Error("Declaration must end with #");
   }
 
-  const identifiers = [];
-  for (let i = 0; i < rest.length - 1; i++) {
-    if (rest[i].type === "identificateur") {
-      identifiers.push(rest[i].value);
-    } else if (rest[i].type !== "," && rest[i].type !== "finLigne") {
-      throw new Error("Invalid token in declaration");
+  if (firstToken == "Snk_Real" || firstToken == "Snk_Int") {
+    const identifiers = [];
+    for (let i = 0; i < rest.length - 1; i++) {
+      if (rest[i].type === "identificateur") {
+        identifiers.push(rest[i].value);
+      } else if (rest[i].type !== "," && rest[i].type !== "finLigne") {
+        return { error: "Invalid token in declaration" };
+        throw new Error("Invalid token in declaration");
+      }
+    }
+
+    switch (firstToken) {
+      case "Snk_Real":
+        return {
+          ligne: line,
+          message: `Declaration de ${identifiers.length} variables de type réels`,
+        };
+      case "Snk_Int":
+        return {
+          ligne: line,
+          message: `Declaration de ${identifiers.length} variables de type entiers`,
+        };
     }
   }
-
-  return { type: "Declaration", keyword: keyword.value, identifiers };
+  if (firstToken === "Snk_Strg") {
+    if (
+      rest.length !== 2 ||
+      rest[0].type !== "chaineCharactere"
+    ) {
+      return { error: "Invalid Print declaration syntax" };
+    }
+    return {ligne: line, message: `Declaration d'une chaine de caractère ${rest[0].value}`}
+  }
 }
 
 // Print: Snk_Print ident, ident # OR Snk_Print "text" #
-function parsePrint(tokens) {
+function parsePrint(tokens, line) {
   const [keyword, ...rest] = tokens;
 
-  console.log("rest:", rest);
-
   if (rest[rest.length - 1]?.type !== "finLigne") {
+    return { error: "Print instruction must end with #" };
     throw new Error("Print instruction must end with #");
   }
 
-  if (rest[0].type === "identificateur" || rest[0].type === "chaineCharactere") {
+  if (rest[0].type === "identificateur") {
     const values = [];
     for (let i = 0; i < rest.length - 1; i++) {
-      if (rest[i].type === "identificateur" || rest[i].type === "," || rest[0].type === "chaineCharactere") {
+      if (rest[i].type === "identificateur") {
         values.push(rest[i].value);
       } else {
-        throw new Error("Invalid token in print instruction");
+        if (rest[i].type !== ",") {
+          return { error: "Invalid token in print instruction" };
+          throw new Error("Invalid token in print instruction");
+        }
       }
     }
-    return { type: "Print", keyword: keyword.value, values };
-  } else if (rest[0].type === "Commentaire") {
-    return { type: "Print", text: rest[0].value };
+    return { ligne: line, message: `Affichage de ${values.length} variables` };
+  } else if (rest[0].type === "chaineCharactere") {
+    return {
+      ligne: line,
+      message: `Affichage de ${rest[0].value}`,
+    };
   }
 }
 
 // Assignment: Get ident from ident # OR Set ident nombre #
-function parseAssignment(tokens) {
+function parseAssignment(tokens, line) {
   const [keyword, ident1, fromKeyword, ident2, endToken] = tokens;
 
   if (
@@ -232,10 +283,8 @@ function parseAssignment(tokens) {
     ident2?.type === "finLigne"
   ) {
     return {
-      type: "Assignment",
-      keyword: keyword.value,
-      identifier: ident1.value,
-      value: fromKeyword.value,
+      ligne: line,
+      message: `Affectation de ${fromKeyword.value} a ${ident1.value}`,
     };
   }
 
@@ -247,42 +296,52 @@ function parseAssignment(tokens) {
     endToken?.type === "finLigne"
   ) {
     return {
-      type: "Assignment",
-      keyword: keyword.value,
-      identifier: ident1.value,
-      from: ident2.value,
+      ligne: line,
+      message: `Affectation de ${ident2.value} & ${ident1.value}`,
     };
   }
 
+  return { error: "Invalid assignment syntax" };
   throw new Error("Invalid assignment syntax");
 }
 
-function parseIfStatement(tokens) {
+function parseIfStatement(tokens, line) {
   const [keyword, crouche1, ident1, egalite, ident2, crouche2] = tokens;
 
   if (
-    (keyword?.type === "If" &&
-      crouche1?.type === "[" &&
-      ident1?.type === "nombre") ||
-    (ident1.type === "identificateur" && egalite?.type === ">") ||
-    egalite?.type === "<" ||
-    (egalite?.type === "==" && ident2?.type === "nombre") ||
-    (ident2.type === "identificateur" && crouche1?.type === "]")
+    keyword?.type === "If" &&
+    crouche1?.type === "[" &&
+    (ident1?.type === "nombre" || ident1.type === "identificateur") &&
+    (egalite?.type === ">" ||
+      egalite?.type === "<" ||
+      egalite?.type === "==") &&
+    (ident2?.type === "nombre" || ident2.type === "identificateur") &&
+    crouche2?.type === "]"
   ) {
+    let egelite_msg;
+    switch (egalite.type) {
+      case "==":
+        egelite_msg = "est égale a";
+        break;
+      case ">":
+        egelite_msg = "est supérieure a";
+        break;
+      case "<":
+        egelite_msg = "est inférieure a";
+        break;
+    }
     return {
-      type: "If statement",
-      keyword: keyword.value,
-      identifier: ident1.value,
-      egalite: egalite.value,
-      secondeIdentifier: ident2.value,
+      ligne: line,
+      message: `Si ${ident1.value} ${egelite_msg} ${ident2.value}`,
     };
   }
 
+  return { error: "Invalid If statement syntax" };
   throw new Error("Invalid If statement syntax");
 }
 
 // Example Parse
-function parseProgram(input) {
+export function parseProgram(input) {
   const lines = input
     .split("\n")
     .map((line) => line.trim())
@@ -290,28 +349,37 @@ function parseProgram(input) {
   const result = [];
   for (const line of lines) {
     const tokens = tokenizeLine(line);
-    result.push(parseLine(tokens));
+    if (tokens?.error) {
+      return tokens;
+    } else {
+      const parseResult = parseLine(tokens, line);
+      if (parseResult.error) {
+        return parseResult;
+      } else {
+        result.push(parseLine(tokens, line));
+      }
+    }
   }
   return result;
 }
 
-const code = `
-Snk_Begin
-Snk_Int i, j, x1, x2 #
-Snk_Real x3 #
-Set i 33 #
-If [ i==50]
-Set x1 10 #
-Else
-Begin
-Get x2 from x3 #
-Set k 43.5 #
-Snk_Print x2, x3 #
-End
-Snk_Print " Hello :) " #
-Snk_Print i,j #
-## ceci est un commentaire
-Snk_End
-`;
-
-console.log(JSON.stringify(parseProgram(code), null, 2));
+// const code = `
+// Snk_Begin
+// Snk_Int i, j, x1, x2 #
+// Snk_Real x3 #
+// Set i 33 #
+// If [ i==50]
+// Set x1 10 #
+// Else
+// Begin
+// Get x2 from x3 #
+// Set k 43.5 #
+// Snk_Print x2, x3 #
+// End
+// Snk_Print " Hello :) " #
+// Snk_Print i,j #
+// ## ceci est un commentaire
+// Snk_End
+// `;
+//
+// console.log(JSON.stringify(parseProgram(code), null, 2));

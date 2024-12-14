@@ -2,6 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEditor } from "@/components/Context/EditorContext";
 import clsx from "clsx";
 import { v4 as uuidv4 } from "uuid";
+import { ScrollArea } from "./ui/scroll-area";
 
 const Terminal = () => {
   const { editor, setEditor } = useEditor();
@@ -11,8 +12,11 @@ const Terminal = () => {
     { id: uuidv4(), value: "semantique", text: "Sémantique" },
   ];
   return (
-    <Tabs defaultValue="lexique" className="w-full h-full">
-      <TabsList className="flex items-center justify-start gap-2">
+    <Tabs
+      defaultValue="lexique"
+      className="w-full h-full flex flex-col items-start justify-start"
+    >
+      <TabsList className="flex items-center justify-start gap-2 w-full">
         {terminalItems.map((i) => (
           <TabsTrigger
             key={i.id}
@@ -29,22 +33,28 @@ const Terminal = () => {
       </TabsList>
       {editor.analysisResult && (
         <>
-          <TabsContent value="lexique">
-            {Object.entries(editor.analysisResult.lexical?.tokens).map(
-              ([key, value]) => (
-                <div key={key}>
-                  <strong>{key}:</strong> {JSON.stringify(value)}
-                </div>
-              )
-            )}
+          <TabsContent value="lexique" className="h-full min-h-0 w-full">
+            <ScrollArea className="max-h-full max-w-full h-full w-full">
+              {Object.entries(editor.analysisResult.lexical?.tokens).map(
+                ([key, value]) => (
+                  <div key={key}>
+                    <strong>{key}:</strong> {JSON.stringify(value)}
+                  </div>
+                )
+              )}
+            </ScrollArea>
           </TabsContent>
-          <TabsContent value="syntax">
-            is valid :{" "}
-            {JSON.stringify(editor.analysisResult.syntax?.isValid, null, 2)}
+          <TabsContent value="syntax" className="h-full min-h-0 w-full">
+            <ScrollArea className="max-h-full max-w-full h-full w-full">
+              is valid :{" "}
+              {JSON.stringify(editor.analysisResult.syntax?.isValid, null, 2)}
+            </ScrollArea>
           </TabsContent>
-          <TabsContent value="semantique">
-            is valid :{" "}
-            {JSON.stringify(editor.analysisResult.semantic?.isValid, null, 2)}
+          <TabsContent value="semantique" className="h-full min-h-0 w-full">
+            <ScrollArea className="max-h-full max-w-full h-full w-full">
+              is valid :{" "}
+              {JSON.stringify(editor.analysisResult.semantic?.isValid, null, 2)}
+            </ScrollArea>
           </TabsContent>
         </>
       )}

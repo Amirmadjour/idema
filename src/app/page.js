@@ -16,7 +16,7 @@ const Home = () => {
       <div className="w-full h-full flex items-center justify-center">
         <SideBar />
         <Separator orientation="vertical" />
-        <div className="w-full h-full overflow-hidden">
+        <div className="w-full h-full overflow-hidden flex flex-col items-center justify-center">
           <Separator />
           <TabBar />
           <ResizableMain />

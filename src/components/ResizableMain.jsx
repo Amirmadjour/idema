@@ -11,7 +11,7 @@ export default function ResizableMain() {
   return (
     <ResizablePanelGroup
       direction="vertical"
-      className="min-h-[200px] w-full rounded-lg border md:min-w-[450px]"
+      className="min-h-[200px] h-full w-full rounded-lg border md:min-w-[450px]"
     >
       <ResizablePanel defaultSize={35}>
         <Editor />

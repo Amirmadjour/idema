@@ -76,7 +76,7 @@ const TabBar = () => {
             }}
           >
             <SnakeSVG />
-            <p>{i.tabTitle}</p>
+            <p className="select-none">{i.tabTitle}</p>
             <Button
               className="w-5 h-5 p-0 text-foreground-secondary"
               variant="ghost"

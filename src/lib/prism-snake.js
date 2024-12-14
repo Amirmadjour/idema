@@ -7,7 +7,7 @@ Prism.languages.snake = {
     pattern: /(["'])(?:(?!\1)[^\\]|\\.)*\1/, 
     greedy: true,
   },
-  keyword: /\b(Snk_Begin|Snk_Int|Snk_Real|Set|Get|from|If|Else|Begin|End|Snk_Print|Snk_End)\b/,
+  keyword: /\b(Snk_Begin|Snk_Int|Snk_Real|Snk_Strg|Set|Get|from|If|Else|Begin|End|Snk_Print|Snk_End)\b/,
   number: /\b\d+(\.\d+)?\b/, 
   operator: /[-+*/=<>!]/, 
   punctuation: /[{}[\];(),.:#]/, 

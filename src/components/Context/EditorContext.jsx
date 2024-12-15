@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 // Create a context
 const EditorContext = createContext();
@@ -8,7 +8,6 @@ export const EditorProvider = ({ children }) => {
   const [editor, setEditor] = useState({
     tabs: [{ tabTitle: "snake.snk", tabContent: "If a > b :" }],
     activeTab: 0,
-    code: "If a > b :",
     analysisResult: "",
   });
 

@@ -9,11 +9,31 @@ const TabBar = () => {
   const { editor, setEditor } = useEditor();
 
   const handleDelete = (index) => {
-    setEditor((prev) => ({
-      ...prev,
-      tabs: prev.tabs.filter((_, tabIndex) => tabIndex !== index),
-      activeTab: prev.activeTab - 1 < 0 ? 0 : prev.activeTab,
-    }));
+    setEditor((prev) => {
+      if (index < 0 || index >= prev.tabs.length) {
+        console.error("Invalid index:", index);
+        return prev;
+      }
+
+      const newTabs = prev.tabs.filter((_, tabIndex) => tabIndex !== index);
+
+      let newActiveTab = prev.activeTab;
+
+      if (prev.activeTab === index) {
+        newActiveTab = index >= newTabs.length ? newTabs.length - 1 : index;
+      } else if (prev.activeTab > index) {
+        newActiveTab = prev.activeTab - 1;
+      }
+
+      const newState = {
+        analysisResult: prev.analysisResult,
+        activeTab: newActiveTab,
+        tabs: newTabs,
+      };
+
+
+      return newState;
+    });
   };
 
   const handleNextTab = () => {
@@ -75,12 +95,15 @@ const TabBar = () => {
               });
             }}
           >
-            <SnakeSVG />
+            {editor.tabs[index].tabTitle.split(".")[1] === "snk" && (
+              <SnakeSVG />
+            )}
             <p className="select-none">{i.tabTitle}</p>
             <Button
               className="w-5 h-5 p-0 text-foreground-secondary"
               variant="ghost"
-              onClick={() => {
+              onClick={(event) => {
+                event.stopPropagation();
                 handleDelete(index);
               }}
             >

@@ -11,6 +11,7 @@ const Terminal = () => {
     { id: uuidv4(), value: "syntax", text: "Syntax" },
     { id: uuidv4(), value: "semantique", text: "Sémantique" },
   ];
+
   return (
     <Tabs
       defaultValue="lexique"
@@ -31,42 +32,50 @@ const Terminal = () => {
           </TabsTrigger>
         ))}
       </TabsList>
-      {editor.analysisResult && (
-        <>
-          <TabsContent value="lexique" className="h-full min-h-0 w-full">
-            {editor.analysisResult.lexical?.tokens && (
-              <ScrollArea className="max-h-full max-w-full h-full w-full">
-                {Object.entries(editor.analysisResult.lexical?.tokens).map(
-                  ([key, value]) => (
-                    <div key={key}>
-                      <strong>{key}:</strong> {JSON.stringify(value)}
+      {editor.analysisResult ? (
+        editor.tabs[editor.activeTab]?.tabTitle?.split(".")[1] === "snk" ? (
+          <>
+            <TabsContent value="lexique" className="h-full min-h-0 w-full">
+              {editor.analysisResult.lexical?.tokens && (
+                <ScrollArea className="max-h-full max-w-full h-full w-full">
+                  {Object.entries(editor.analysisResult.lexical?.tokens).map(
+                    ([key, value]) => (
+                      <div key={key}>
+                        <strong>{key}:</strong> {JSON.stringify(value)}
+                      </div>
+                    )
+                  )}
+                </ScrollArea>
+              )}
+            </TabsContent>
+            <TabsContent value="syntax" className="h-full min-h-0 w-full">
+              {editor.analysisResult.syntax && (
+                <ScrollArea className="max-h-full max-w-full h-full w-full">
+                  {editor.analysisResult.syntax.map((i, index) => (
+                    <div key={index}>
+                      <strong>{i.ligne ? i.ligne : "Error"}:</strong>{" "}
+                      {i.error ? i.error : JSON.stringify(i.message)}
                     </div>
-                  )
-                )}
-              </ScrollArea>
-            )}
-          </TabsContent>
-          <TabsContent value="syntax" className="h-full min-h-0 w-full">
-            {editor.analysisResult.syntax && (
-              <ScrollArea className="max-h-full max-w-full h-full w-full">
-                {editor.analysisResult.syntax.map((i, index) => (
-                  <div key={index}>
-                    <strong>{i.ligne ? i.ligne : "Error"}:</strong>{" "}
-                    {i.error ? i.error : JSON.stringify(i.message)}
-                  </div>
-                ))}
-              </ScrollArea>
-            )}
-          </TabsContent>
-          <TabsContent value="semantique" className="h-full min-h-0 w-full">
-            {editor.analysisResult.semantic && (
-              <ScrollArea className="max-h-full max-w-full h-full w-full">
-                <strong>{Object.keys(editor.analysisResult.semantic)}</strong> :{" "}
-                {Object.values(editor.analysisResult.semantic)}
-              </ScrollArea>
-            )}
-          </TabsContent>
-        </>
+                  ))}
+                </ScrollArea>
+              )}
+            </TabsContent>
+            <TabsContent value="semantique" className="h-full min-h-0 w-full">
+              {editor.analysisResult.semantic && (
+                <ScrollArea className="max-h-full max-w-full h-full w-full">
+                  <strong>{Object.keys(editor.analysisResult.semantic)}</strong>{" "}
+                  : {Object.values(editor.analysisResult.semantic)}
+                </ScrollArea>
+              )}
+            </TabsContent>
+          </>
+        ) : (
+          <div className="w-full bg-destructive text-destructive-foreground py-1.5 px-2">
+            L'extention de fichier doit etre .snk
+          </div>
+        )
+      ) : (
+        <></>
       )}
     </Tabs>
   );
